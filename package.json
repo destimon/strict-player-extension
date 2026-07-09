@@ -8,6 +8,7 @@
     "build:popup": "vite build",
     "build:content": "vite build --config vite.content.config.ts",
     "build:page": "vite build --config vite.page.config.ts",
+    "icons": "node scripts/generate-icons.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "sharp": "^0.35.3",
     "typescript": "^5.5.3",
     "vite": "^5.3.3"
   }
