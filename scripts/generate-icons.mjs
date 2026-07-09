@@ -11,7 +11,7 @@ const outDir = resolve(root, "public/icons");
 const svg = `
 <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="128" y2="128">
       <stop offset="0" stop-color="#4f7cff"/>
       <stop offset="1" stop-color="#8a5cff"/>
     </linearGradient>
@@ -20,6 +20,11 @@ const svg = `
   <path d="M 28 40 L 68 64 L 28 88 Z" fill="#fff"/>
   <rect x="76" y="40" width="9" height="48" rx="4" fill="#fff"/>
   <rect x="92" y="40" width="9" height="48" rx="4" fill="#fff"/>
+  <!-- "!" badge: we control the player, forcefully -->
+  <circle cx="99" cy="95" r="26" fill="url(#g)"/>
+  <circle cx="99" cy="95" r="20" fill="#fff"/>
+  <rect x="95.5" y="82" width="7" height="16" rx="3.5" fill="#7c53ff"/>
+  <circle cx="99" cy="105" r="4" fill="#7c53ff"/>
 </svg>
 `;
 
