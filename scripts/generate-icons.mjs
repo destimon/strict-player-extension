@@ -17,14 +17,12 @@ const svg = `
     </linearGradient>
   </defs>
   <rect width="128" height="128" rx="36" fill="url(#g)"/>
-  <path d="M 28 40 L 68 64 L 28 88 Z" fill="#fff"/>
-  <rect x="76" y="40" width="9" height="48" rx="4" fill="#fff"/>
-  <rect x="92" y="40" width="9" height="48" rx="4" fill="#fff"/>
-  <!-- "!" badge: we control the player, forcefully -->
-  <circle cx="99" cy="95" r="26" fill="url(#g)"/>
-  <circle cx="99" cy="95" r="20" fill="#fff"/>
-  <rect x="95.5" y="82" width="7" height="16" rx="3.5" fill="#7c53ff"/>
-  <circle cx="99" cy="105" r="4" fill="#7c53ff"/>
+  <path d="M 22 42 L 58 64 L 22 86 Z" fill="#fff"/>
+  <rect x="66" y="42" width="8" height="44" rx="4" fill="#fff"/>
+  <rect x="80" y="42" width="8" height="44" rx="4" fill="#fff"/>
+  <!-- "!" — we control the player, forcefully -->
+  <rect x="98" y="42" width="9" height="30" rx="4.5" fill="#fff"/>
+  <circle cx="102.5" cy="81.5" r="5.5" fill="#fff"/>
 </svg>
 `;
 
