@@ -4,7 +4,8 @@
   "private": true,
   "description": "Chrome extension that forces Space to always toggle play/pause on video players (YouTube, Twitch)",
   "scripts": {
-    "build": "npm run build:popup && npm run build:content && npm run build:page",
+    "build": "npm run clean && npm run build:popup && npm run build:content && npm run build:page",
+    "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
     "build:popup": "vite build",
     "build:content": "vite build --config vite.content.config.ts",
     "build:page": "vite build --config vite.page.config.ts",

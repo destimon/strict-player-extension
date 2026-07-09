@@ -7,7 +7,9 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: "dist",
-    emptyOutDir: true,
+    // Never wipe dist here: content.js/page.js from the other configs live in
+    // it too. The full "build" script cleans dist explicitly instead.
+    emptyOutDir: false,
     rollupOptions: {
       input: resolve(__dirname, "popup.html"),
     },
