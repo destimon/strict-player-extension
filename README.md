@@ -4,6 +4,7 @@ A Chrome extension that makes player hotkeys **always** do what they should — 
 
 - **Space** → play / pause
 - **↑ / ↓** → volume up / down
+- **← / →** → seek ±5s
 - **F** → fullscreen
 
 Supported sites: **YouTube**, **Twitch**, plus a generic mode for **any other site** with a video player (toggleable as "Other sites").
@@ -17,6 +18,8 @@ On YouTube and Twitch, Space is supposed to toggle playback — but once focus l
 The content script intercepts `keydown`/`keyup`/`keypress` in the **capture phase on `window`** — before any of the site's own handlers. The event is swallowed (`preventDefault` + `stopImmediatePropagation`), so focused sliders and buttons never see it, and the extension performs the action itself.
 
 **Play/pause**: clicks the player's play/pause button, falling back to `video.play()/pause()`.
+
+**Seek**: on YouTube through the player API (`seekTo`, handles live streams and ads); elsewhere via `video.currentTime`, clamped to the seekable range — progress bars track `timeupdate`, so the site's UI stays in sync.
 
 **Fullscreen**: clicks the player's fullscreen button (YouTube, Twitch), falling back to the Fullscreen API (`video.requestFullscreen()` / `document.exitFullscreen()`).
 
@@ -56,7 +59,7 @@ The built extension ends up in `dist/`.
 
 Click the extension icon to open the popup:
 - **Enabled** — global on/off;
-- per-key toggles (Space → play/pause, ↑/↓ → volume, F → fullscreen);
+- per-key toggles (Space → play/pause, ↑/↓ → volume, ←/→ → seek, F → fullscreen);
 - per-site toggles for YouTube, Twitch and Other sites.
 
 Settings are stored in `chrome.storage.sync` and apply instantly, no page reload needed.

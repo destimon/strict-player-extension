@@ -1,4 +1,6 @@
 import {
+  SEEK_REQUEST_EVENT,
+  SEEK_RESPONSE_EVENT,
   VOLUME_REQUEST_EVENT,
   VOLUME_RESPONSE_EVENT,
 } from "../shared/bridge";
@@ -12,6 +14,8 @@ import {
 
 /** Volume step as a fraction of the full range (5%). */
 const VOLUME_STEP = 0.05;
+/** Seek step in seconds. */
+const SEEK_STEP = 5;
 
 let settings: Settings = DEFAULT_SETTINGS;
 
@@ -192,24 +196,33 @@ function changeVolume(site: SiteId, direction: 1 | -1): void {
 }
 
 /**
- * Asks our MAIN-world script (YouTube) to change volume through the player's
- * own API. dispatchEvent is synchronous, so the response — if the page script
- * exists and found the player — arrives before this function returns.
+ * Asks our MAIN-world script (YouTube) to act through the player's own API.
+ * dispatchEvent is synchronous, so the response — if the page script exists
+ * and found the player — arrives before this function returns.
  */
-function changeVolumeViaPageApi(direction: 1 | -1): boolean {
+function pageApiRequest(
+  requestEvent: string,
+  responseEvent: string,
+  detail: string
+): number | null {
   let result: number | null = null;
   const onResponse = (event: Event) => {
     result = Number((event as CustomEvent).detail);
   };
-  window.addEventListener(VOLUME_RESPONSE_EVENT, onResponse);
-  window.dispatchEvent(
-    new CustomEvent(VOLUME_REQUEST_EVENT, {
-      detail: String(direction * VOLUME_STEP * 100),
-    })
+  window.addEventListener(responseEvent, onResponse);
+  window.dispatchEvent(new CustomEvent(requestEvent, { detail }));
+  window.removeEventListener(responseEvent, onResponse);
+  return result !== null && Number.isFinite(result) ? result : null;
+}
+
+function changeVolumeViaPageApi(direction: 1 | -1): boolean {
+  const volume = pageApiRequest(
+    VOLUME_REQUEST_EVENT,
+    VOLUME_RESPONSE_EVENT,
+    String(direction * VOLUME_STEP * 100)
   );
-  window.removeEventListener(VOLUME_RESPONSE_EVENT, onResponse);
-  if (result === null || !Number.isFinite(result)) return false;
-  showVolumeOverlay(result);
+  if (volume === null) return false;
+  showVolumeOverlay(volume);
   return true;
 }
 
@@ -269,12 +282,60 @@ function changeVolumeDirectly(site: SiteId, direction: 1 | -1): void {
   showVolumeOverlay(Math.round(next * 100));
 }
 
-// The sites' own volume UI may not react when we set video.volume directly,
-// so we render our own small indicator.
+function seek(site: SiteId, direction: 1 | -1): void {
+  const delta = direction * SEEK_STEP;
+
+  // YouTube: through the player API, which handles live streams and ads.
+  const position = pageApiRequest(
+    SEEK_REQUEST_EVENT,
+    SEEK_RESPONSE_EVENT,
+    String(delta)
+  );
+  if (position !== null) {
+    showSeekOverlay(direction, position);
+    return;
+  }
+
+  // Everything else: progress bars track the video's timeupdate, so setting
+  // currentTime stays in sync with the site's UI (unlike volume).
+  const video = ADAPTERS[site].findVideo();
+  if (!video) return;
+  let next = Math.max(0, video.currentTime + delta);
+  if (Number.isFinite(video.duration)) next = Math.min(next, video.duration);
+  if (video.seekable.length > 0) {
+    // Live streams: stay inside the seekable window (up to the live edge).
+    const start = video.seekable.start(0);
+    const end = video.seekable.end(video.seekable.length - 1);
+    next = Math.min(Math.max(next, start), end);
+  }
+  video.currentTime = next;
+  showSeekOverlay(direction, next);
+}
+
+function showSeekOverlay(direction: 1 | -1, positionSeconds: number): void {
+  showOverlay(`${direction > 0 ? "⏩" : "⏪"} ${formatTime(positionSeconds)}`);
+}
+
+function formatTime(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = s % 60;
+  const mm = hours > 0 ? String(minutes).padStart(2, "0") : String(minutes);
+  const ss = String(seconds).padStart(2, "0");
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+// The sites' own UI may not react when we act on the media element directly,
+// so we render our own small feedback indicator.
 let overlayEl: HTMLDivElement | null = null;
 let overlayTimer: ReturnType<typeof setTimeout> | undefined;
 
 function showVolumeOverlay(percent: number): void {
+  showOverlay(`${percent === 0 ? "🔇" : "🔊"} ${percent}%`);
+}
+
+function showOverlay(text: string): void {
   if (!overlayEl || !overlayEl.isConnected) {
     overlayEl = document.createElement("div");
     overlayEl.style.cssText = [
@@ -293,7 +354,7 @@ function showVolumeOverlay(percent: number): void {
     ].join(";");
     document.documentElement.appendChild(overlayEl);
   }
-  overlayEl.textContent = `${percent === 0 ? "🔇" : "🔊"} ${percent}%`;
+  overlayEl.textContent = text;
   overlayEl.style.opacity = "1";
   clearTimeout(overlayTimer);
   overlayTimer = setTimeout(() => {
@@ -306,7 +367,20 @@ function hasPlayer(site: SiteId): boolean {
   return adapter.findPlayPauseButton() !== null || adapter.findVideo() !== null;
 }
 
-type Action = "playPause" | "volumeUp" | "volumeDown" | "fullscreen";
+type Action =
+  | "playPause"
+  | "volumeUp"
+  | "volumeDown"
+  | "seekBack"
+  | "seekForward"
+  | "fullscreen";
+
+const ARROW_ACTIONS = new Set<Action>([
+  "volumeUp",
+  "volumeDown",
+  "seekBack",
+  "seekForward",
+]);
 
 /**
  * Maps the event to our action if this key press belongs to us. If it does,
@@ -325,6 +399,10 @@ function actionFor(event: KeyboardEvent, site: SiteId): Action | null {
     action = "volumeUp";
   } else if (event.code === "ArrowDown" && settings.features.volume) {
     action = "volumeDown";
+  } else if (event.code === "ArrowLeft" && settings.features.seek) {
+    action = "seekBack";
+  } else if (event.code === "ArrowRight" && settings.features.seek) {
+    action = "seekForward";
   } else if (event.code === "KeyF" && settings.features.fullscreen) {
     action = "fullscreen";
   } else {
@@ -332,12 +410,7 @@ function actionFor(event: KeyboardEvent, site: SiteId): Action | null {
   }
 
   // Arrows keep navigating inside player menus (e.g. YouTube quality menu).
-  if (
-    (action === "volumeUp" || action === "volumeDown") &&
-    isMenuTarget(event.target)
-  ) {
-    return null;
-  }
+  if (ARROW_ACTIONS.has(action) && isMenuTarget(event.target)) return null;
   return hasPlayer(site) ? action : null;
 }
 
@@ -366,6 +439,12 @@ window.addEventListener(
         break;
       case "volumeDown":
         changeVolume(site, -1);
+        break;
+      case "seekBack":
+        seek(site, -1);
+        break;
+      case "seekForward":
+        seek(site, 1);
         break;
       case "fullscreen":
         if (!event.repeat) toggleFullscreen(site);

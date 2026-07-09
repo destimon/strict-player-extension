@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "StrictPlayer",
   "version": "1.0.0",
-  "description": "Player keys always do what they should: Space is play/pause, arrows are volume, F is fullscreen. YouTube, Twitch and any site with a video player.",
+  "description": "Player keys always do what they should: Space is play/pause, arrows are volume and seek, F is fullscreen. YouTube, Twitch and any site with a video player.",
   "permissions": ["storage"],
   "icons": {
     "16": "icons/icon16.png",

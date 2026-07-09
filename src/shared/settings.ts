@@ -1,5 +1,5 @@
 export type SiteId = "youtube" | "twitch" | "other";
-export type FeatureId = "playPause" | "volume" | "fullscreen";
+export type FeatureId = "playPause" | "volume" | "seek" | "fullscreen";
 
 export interface Settings {
   enabled: boolean;
@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS: Settings = {
   features: {
     playPause: true,
     volume: true,
+    seek: true,
     fullscreen: true,
   },
   sites: {
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const FEATURE_LABELS: Record<FeatureId, { keys: string; action: string }> = {
   playPause: { keys: "Space", action: "Play / Pause" },
   volume: { keys: "↑ / ↓", action: "Volume" },
+  seek: { keys: "← / →", action: "Seek 5s" },
   fullscreen: { keys: "F", action: "Fullscreen" },
 };
 
