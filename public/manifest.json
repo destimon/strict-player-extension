@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "StrictPlayer",
+  "version": "1.0.0",
+  "description": "Space always toggles play/pause on video players. No more accidental volume/fullscreen changes.",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "StrictPlayer"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*", "*://*.twitch.tv/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["page.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    }
+  ]
+}
