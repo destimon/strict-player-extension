@@ -1,4 +1,4 @@
-export type SiteId = "youtube" | "twitch";
+export type SiteId = "youtube" | "twitch" | "other";
 export type FeatureId = "playPause" | "volume";
 
 export interface Settings {
@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sites: {
     youtube: true,
     twitch: true,
+    other: true,
   },
 };
 
@@ -27,6 +28,7 @@ export const FEATURE_LABELS: Record<FeatureId, { keys: string; action: string }>
 export const SITE_LABELS: Record<SiteId, string> = {
   youtube: "YouTube",
   twitch: "Twitch",
+  other: "Other sites",
 };
 
 const STORAGE_KEY = "strictPlayerSettings";

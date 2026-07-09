@@ -22,11 +22,11 @@ onSettingsChanged((s) => {
   settings = s;
 });
 
-function currentSite(): SiteId | null {
+function currentSite(): SiteId {
   const host = location.hostname;
   if (host === "youtube.com" || host.endsWith(".youtube.com")) return "youtube";
   if (host === "twitch.tv" || host.endsWith(".twitch.tv")) return "twitch";
-  return null;
+  return "other";
 }
 
 // Input types where the key types/edits text. Notably NOT "range": volume
@@ -98,7 +98,38 @@ const ADAPTERS: Record<SiteId, SiteAdapter> = {
       );
     },
   },
+  // Any other site: there is no reliable generic play/pause button, so the
+  // video element is controlled directly.
+  other: {
+    findPlayPauseButton() {
+      return null;
+    },
+    findVideo() {
+      return findMainVideo();
+    },
+  },
 };
+
+// Minimum rendered size for a video to count as "the player". Filters out
+// decorative background loops, thumbnails and preview videos.
+const MIN_VIDEO_WIDTH = 200;
+const MIN_VIDEO_HEIGHT = 112;
+
+/** Picks the largest visible <video> on the page, if any. */
+function findMainVideo(): HTMLVideoElement | null {
+  let best: HTMLVideoElement | null = null;
+  let bestArea = 0;
+  for (const video of document.querySelectorAll("video")) {
+    const rect = video.getBoundingClientRect();
+    if (rect.width < MIN_VIDEO_WIDTH || rect.height < MIN_VIDEO_HEIGHT) continue;
+    const area = rect.width * rect.height;
+    if (area > bestArea) {
+      best = video;
+      bestArea = area;
+    }
+  }
+  return best;
+}
 
 function togglePlayback(site: SiteId): void {
   const adapter = ADAPTERS[site];
@@ -273,40 +304,39 @@ function swallow(event: KeyboardEvent): void {
 }
 
 const site = currentSite();
-if (site) {
-  // Capture phase on window: runs before any of the site's own handlers.
+
+// Capture phase on window: runs before any of the site's own handlers.
+window.addEventListener(
+  "keydown",
+  (event) => {
+    const action = actionFor(event, site);
+    if (!action) return;
+    swallow(event);
+    switch (action) {
+      case "playPause":
+        // Holding Space auto-repeats keydown; toggle only on the initial
+        // press. Held arrows keep adjusting volume — that one we want.
+        if (!event.repeat) togglePlayback(site);
+        break;
+      case "volumeUp":
+        changeVolume(site, 1);
+        break;
+      case "volumeDown":
+        changeVolume(site, -1);
+        break;
+    }
+  },
+  true
+);
+
+// Focused <button> elements activate on keyup, and some sites listen to
+// keypress/keyup directly — block those too so nothing else reacts.
+for (const type of ["keyup", "keypress"] as const) {
   window.addEventListener(
-    "keydown",
+    type,
     (event) => {
-      const action = actionFor(event, site);
-      if (!action) return;
-      swallow(event);
-      switch (action) {
-        case "playPause":
-          // Holding Space auto-repeats keydown; toggle only on the initial
-          // press. Held arrows keep adjusting volume — that one we want.
-          if (!event.repeat) togglePlayback(site);
-          break;
-        case "volumeUp":
-          changeVolume(site, 1);
-          break;
-        case "volumeDown":
-          changeVolume(site, -1);
-          break;
-      }
+      if (actionFor(event, site)) swallow(event);
     },
     true
   );
-
-  // Focused <button> elements activate on keyup, and some sites listen to
-  // keypress/keyup directly — block those too so nothing else reacts.
-  for (const type of ["keyup", "keypress"] as const) {
-    window.addEventListener(
-      type,
-      (event) => {
-        if (actionFor(event, site)) swallow(event);
-      },
-      true
-    );
-  }
 }

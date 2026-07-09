@@ -5,7 +5,7 @@ A Chrome extension that makes player hotkeys **always** do what they should — 
 - **Space** → play / pause
 - **↑ / ↓** → volume up / down
 
-Supported sites: **YouTube**, **Twitch**.
+Supported sites: **YouTube**, **Twitch**, plus a generic mode for **any other site** with a video player (toggleable as "Other sites").
 
 ## Why
 
@@ -16,6 +16,8 @@ On YouTube and Twitch, Space is supposed to toggle playback — but once focus l
 The content script intercepts `keydown`/`keyup`/`keypress` in the **capture phase on `window`** — before any of the site's own handlers. The event is swallowed (`preventDefault` + `stopImmediatePropagation`), so focused sliders and buttons never see it, and the extension performs the action itself.
 
 **Play/pause**: clicks the player's play/pause button, falling back to `video.play()/pause()`.
+
+**Other sites**: there are no site-specific selectors, so the extension picks the "main" video — the largest visible `<video>` on the page (small decorative/preview videos are ignored) — and controls it directly. If no significant video exists on the page, keys are not intercepted at all.
 
 **Volume** is changed through the site itself so its UI never goes out of sync, trying in order:
 
@@ -52,7 +54,7 @@ The built extension ends up in `dist/`.
 Click the extension icon to open the popup:
 - **Enabled** — global on/off;
 - per-key toggles (Space → play/pause, ↑/↓ → volume);
-- per-site toggles for YouTube and Twitch.
+- per-site toggles for YouTube, Twitch and Other sites.
 
 Settings are stored in `chrome.storage.sync` and apply instantly, no page reload needed.
 
@@ -70,8 +72,9 @@ vite.content.config.ts      — content script build (IIFE)
 vite.page.config.ts         — page script build (IIFE)
 ```
 
-## Adding a new site
+## Adding first-class support for a site
+
+Unknown sites are already covered by the generic "Other sites" mode. To give a site its own adapter and toggle (better play/pause via its real button):
 
 1. Extend `SiteId`, `DEFAULT_SETTINGS.sites` and `SITE_LABELS` in `src/shared/settings.ts`.
 2. Add an adapter to `ADAPTERS` in `src/content/content.ts` (play/pause button and `<video>` selectors) and a branch in `currentSite()`.
-3. Add the domain to `content_scripts.matches` in `public/manifest.json`.

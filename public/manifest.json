@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "StrictPlayer",
   "version": "1.0.0",
-  "description": "Space always toggles play/pause on video players. No more accidental volume/fullscreen changes.",
+  "description": "Player keys always do what they should: Space toggles play/pause, arrows change volume. YouTube, Twitch and any site with a video player.",
   "permissions": ["storage"],
   "icons": {
     "16": "icons/icon16.png",
@@ -22,7 +22,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*", "*://*.twitch.tv/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_start",
       "all_frames": true
