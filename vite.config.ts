@@ -2,7 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
-// Builds the popup UI. public/manifest.json is copied to dist/ by this build.
+// Builds the popup and the guide side panel. public/manifest.json is copied
+// to dist/ by this build.
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -11,7 +12,10 @@ export default defineConfig({
     // it too. The full "build" script cleans dist explicitly instead.
     emptyOutDir: false,
     rollupOptions: {
-      input: resolve(__dirname, "popup.html"),
+      input: {
+        popup: resolve(__dirname, "popup.html"),
+        help: resolve(__dirname, "help.html"),
+      },
     },
   },
 });

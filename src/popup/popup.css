@@ -35,6 +35,31 @@ body {
   gap: 10px;
 }
 
+.header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.guide-btn {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.guide-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 .logo {
   width: 36px;
   height: 36px;

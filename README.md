@@ -64,6 +64,8 @@ Click the extension icon to open the popup:
 
 Settings are stored in `chrome.storage.sync` and apply instantly, no page reload needed.
 
+The **?** button in the popup opens the guide — a full explanation of the keys, exceptions and internals — in Chrome's side panel.
+
 ## Project structure
 
 ```
@@ -71,6 +73,7 @@ public/manifest.json        — Manifest V3
 src/content/content.ts      — key interception + player control
 src/page/page.ts            — MAIN-world bridge to the YouTube player API
 src/popup/                  — React popup (toggles)
+src/help/                   — guide page shown in the side panel
 src/shared/settings.ts      — settings types + chrome.storage helpers
 src/shared/bridge.ts        — events between content and page scripts
 vite.config.ts              — popup build

@@ -13,6 +13,17 @@ import { Toggle } from "./Toggle";
 const SITE_IDS = Object.keys(SITE_LABELS) as SiteId[];
 const FEATURE_IDS = Object.keys(FEATURE_LABELS) as FeatureId[];
 
+async function openGuide() {
+  try {
+    const win = await chrome.windows.getCurrent();
+    await chrome.sidePanel.open({ windowId: win.id! });
+    window.close();
+  } catch {
+    // Side panel unavailable (old Chrome) — open the guide as a tab instead.
+    void chrome.tabs.create({ url: chrome.runtime.getURL("help.html") });
+  }
+}
+
 export function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
 
@@ -31,10 +42,18 @@ export function App() {
     <div className="popup">
       <header className="header">
         <div className="logo">⏯</div>
-        <div>
+        <div className="header-text">
           <h1 className="title">StrictPlayer</h1>
           <p className="subtitle">Player keys always do what they should</p>
         </div>
+        <button
+          className="guide-btn"
+          title="Open guide"
+          aria-label="Open guide"
+          onClick={openGuide}
+        >
+          ?
+        </button>
       </header>
 
       <div className="master-row">
