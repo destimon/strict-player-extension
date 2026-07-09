@@ -44,26 +44,14 @@ body {
   border: 1px solid var(--border);
 }
 
+/* The real extension icon, so branding matches the toolbar exactly. */
 .hero-logo {
   width: 56px;
   height: 56px;
   margin: 0 auto 12px;
+  display: block;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
   box-shadow: 0 8px 24px rgba(105, 108, 255, 0.35);
-}
-
-/* "!" — we control the player, forcefully */
-.hero-logo::after {
-  content: "!";
-  color: #fff;
-  font-size: 24px;
-  font-weight: 800;
-  margin-left: 2px;
 }
 
 .hero h1 {

@@ -41,7 +41,7 @@ export function App() {
   return (
     <div className="popup">
       <header className="header">
-        <div className="logo">⏯</div>
+        <img className="logo" src="/icons/icon48.png" alt="" />
         <div className="header-text">
           <h1 className="title">StrictPlayer</h1>
           <p className="subtitle">Player keys always do what they should</p>

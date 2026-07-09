@@ -54,7 +54,7 @@ export function Help() {
   return (
     <div className="help">
       <header className="hero">
-        <div className="hero-logo">⏯</div>
+        <img className="hero-logo" src="/icons/icon128.png" alt="" />
         <h1>StrictPlayer</h1>
         <p className="tagline">Player keys always do what they should.</p>
       </header>

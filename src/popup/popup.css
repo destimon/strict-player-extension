@@ -60,24 +60,11 @@ body {
   border-color: var(--accent);
 }
 
+/* The real extension icon, so branding matches the toolbar exactly. */
 .logo {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), #8a5cff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-/* "!" — we control the player, forcefully */
-.logo::after {
-  content: "!";
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
-  margin-left: 1px;
+  display: block;
 }
 
 .title {
