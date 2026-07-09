@@ -69,6 +69,8 @@ function isMenuTarget(target: EventTarget | null): boolean {
 interface SiteAdapter {
   /** Returns the play/pause button to click, or null. */
   findPlayPauseButton(): HTMLElement | null;
+  /** Returns the fullscreen button to click, or null. */
+  findFullscreenButton(): HTMLElement | null;
   /** Returns the player's <video> element, or null. */
   findVideo(): HTMLVideoElement | null;
 }
@@ -78,6 +80,11 @@ const ADAPTERS: Record<SiteId, SiteAdapter> = {
     findPlayPauseButton() {
       return document.querySelector<HTMLElement>(
         "#movie_player .ytp-play-button"
+      );
+    },
+    findFullscreenButton() {
+      return document.querySelector<HTMLElement>(
+        "#movie_player .ytp-fullscreen-button"
       );
     },
     findVideo() {
@@ -92,6 +99,11 @@ const ADAPTERS: Record<SiteId, SiteAdapter> = {
         '[data-a-target="player-play-pause-button"]'
       );
     },
+    findFullscreenButton() {
+      return document.querySelector<HTMLElement>(
+        '[data-a-target="player-fullscreen-button"]'
+      );
+    },
     findVideo() {
       return document.querySelector<HTMLVideoElement>(
         ".video-player video, video"
@@ -102,6 +114,9 @@ const ADAPTERS: Record<SiteId, SiteAdapter> = {
   // video element is controlled directly.
   other: {
     findPlayPauseButton() {
+      return null;
+    },
+    findFullscreenButton() {
       return null;
     },
     findVideo() {
@@ -129,6 +144,26 @@ function findMainVideo(): HTMLVideoElement | null {
     }
   }
   return best;
+}
+
+function toggleFullscreen(site: SiteId): void {
+  const button = ADAPTERS[site].findFullscreenButton();
+  if (button) {
+    button.click();
+    return;
+  }
+  // Generic path: the Fullscreen API. Allowed here because this runs inside
+  // a real (trusted) keydown — it counts as a user gesture.
+  if (document.fullscreenElement) {
+    void document.exitFullscreen();
+    return;
+  }
+  const video = ADAPTERS[site].findVideo();
+  if (video) {
+    video.requestFullscreen().catch(() => {
+      // e.g. an iframe without allowfullscreen — nothing we can do
+    });
+  }
 }
 
 function togglePlayback(site: SiteId): void {
@@ -271,7 +306,7 @@ function hasPlayer(site: SiteId): boolean {
   return adapter.findPlayPauseButton() !== null || adapter.findVideo() !== null;
 }
 
-type Action = "playPause" | "volumeUp" | "volumeDown";
+type Action = "playPause" | "volumeUp" | "volumeDown" | "fullscreen";
 
 /**
  * Maps the event to our action if this key press belongs to us. If it does,
@@ -290,11 +325,19 @@ function actionFor(event: KeyboardEvent, site: SiteId): Action | null {
     action = "volumeUp";
   } else if (event.code === "ArrowDown" && settings.features.volume) {
     action = "volumeDown";
+  } else if (event.code === "KeyF" && settings.features.fullscreen) {
+    action = "fullscreen";
   } else {
     return null;
   }
 
-  if (action !== "playPause" && isMenuTarget(event.target)) return null;
+  // Arrows keep navigating inside player menus (e.g. YouTube quality menu).
+  if (
+    (action === "volumeUp" || action === "volumeDown") &&
+    isMenuTarget(event.target)
+  ) {
+    return null;
+  }
   return hasPlayer(site) ? action : null;
 }
 
@@ -323,6 +366,9 @@ window.addEventListener(
         break;
       case "volumeDown":
         changeVolume(site, -1);
+        break;
+      case "fullscreen":
+        if (!event.repeat) toggleFullscreen(site);
         break;
     }
   },
