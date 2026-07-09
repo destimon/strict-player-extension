@@ -9,6 +9,10 @@ A Chrome extension that makes player hotkeys **always** do what they should — 
 
 Supported sites: **YouTube**, **Twitch**, plus a generic mode for **any other site** with a video player (toggleable as "Other sites").
 
+<p align="center">
+  <img src="docs/popup.png" width="280" alt="StrictPlayer popup: master switch, per-key toggles and per-site toggles">
+</p>
+
 ## Why
 
 On YouTube and Twitch, Space is supposed to toggle playback — but once focus lands on a control (volume slider, fullscreen button), Space starts clicking that control or scrolling the page instead. Same story with the arrow keys. StrictPlayer pins these keys to the player, always.
